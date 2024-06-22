@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	rl "github.com/gen2brain/raylib-go/raylib"
+	"github.com/tinarao/gorl/camera"
 	"github.com/tinarao/gorl/music"
 	"github.com/tinarao/gorl/player"
 	"github.com/tinarao/gorl/sprites"
@@ -15,11 +16,10 @@ const (
 )
 
 var (
-	running    = true
-	pl         *player.Player
-	cam        rl.Camera2D
-	frameCount int
-	tileMap    *tilemap.Map
+	running = true
+	pl      *player.Player
+	cam     *camera.Camera
+	tileMap *tilemap.Map
 )
 
 func drawScene() {
@@ -42,48 +42,23 @@ func drawDebugInfo() {
 
 func input() {
 	pl.Controls()
-	if rl.IsKeyPressed(rl.KeyM) {
-		music.IsMusicPaused = !music.IsMusicPaused
-	}
+	music.Controls()
 }
 
 func update() {
 	running = !rl.WindowShouldClose()
-	//rl.UpdateMusicStream(music.Soundtrack)
-	//if music.IsMusicPaused {
-	//	rl.PauseMusicStream(music.Soundtrack)
-	//} else {
-	//	rl.ResumeMusicStream(music.Soundtrack)
-	//}
+	music.Play()
 
-	pl.SrcRect.X = 0
-	pl.UpdatePosition()
-	if pl.IsMoving && frameCount%8 == 1 {
-		pl.Frame++
-	}
+	pl.Update()
+	cam.FixOnTarget(pl)
 
-	frameCount++
-	pl.UpdateSprites()
-
-	cam.Target = rl.NewVector2(pl.DstRect.X-(pl.DstRect.Width/2), pl.DstRect.Y-(pl.DstRect.Height/2))
-
-	pl.IsMoving = false
-	pl.Up, pl.Down, pl.Right, pl.Left = false, false, false, false
-
-	// Zoom on mouse wheel move
-	wheelPos := rl.GetMouseWheelMove() // up=1; down=-1
-	if wheelPos > 0 && cam.Zoom < 5 {
-		cam.Zoom += 0.5
-	} else if wheelPos < 0 && cam.Zoom > 1 {
-		cam.Zoom -= 0.5
-	}
+	cam.Zoom()
 }
 
 func render() {
 	rl.BeginDrawing()
-	//rl.ClearBackground(colors.Background())
 	rl.ClearBackground(rl.White)
-	rl.BeginMode2D(cam)
+	rl.BeginMode2D(*cam.TwoDim)
 
 	drawScene()
 	drawDebugInfo()
@@ -103,11 +78,7 @@ func gorlInit() {
 	music.Init()
 
 	pl = player.Create(sprites.PlayerTexture, 0, 0)
-	cam = rl.NewCamera2D(
-		rl.NewVector2(float32(ScreenWidth/2), float32(ScreenHeight/2)),
-		rl.NewVector2(pl.DstRect.X-(pl.DstRect.Width/2), pl.DstRect.Y-(pl.DstRect.Height/2)),
-		0.0,
-		1.0)
+	cam = camera.CreateCamera(ScreenWidth, ScreenHeight, pl)
 	sprites.Load()
 }
 

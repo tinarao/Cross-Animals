@@ -1,6 +1,9 @@
 package player
 
-import rl "github.com/gen2brain/raylib-go/raylib"
+import (
+	rl "github.com/gen2brain/raylib-go/raylib"
+	"github.com/tinarao/gorl/helpers"
+)
 
 type Player struct {
 	Texture rl.Texture2D
@@ -15,6 +18,8 @@ type Player struct {
 
 	Frame int
 }
+
+var frameCount = &helpers.FrameCount
 
 func Create(tex rl.Texture2D, x float32, y float32) *Player {
 	return &Player{
@@ -49,7 +54,8 @@ func (pl *Player) Controls() {
 	}
 }
 
-func (pl *Player) UpdateSprites() {
+func (pl *Player) updateSprites() {
+	pl.SrcRect.X = 0
 	if pl.Frame > 3 {
 		pl.Frame = 0
 	}
@@ -60,8 +66,7 @@ func (pl *Player) UpdateSprites() {
 	}
 }
 
-func (pl *Player) UpdatePosition() {
-
+func (pl *Player) updatePosition() {
 	if pl.IsMoving {
 		if pl.Up {
 			pl.DstRect.Y -= pl.Speed
@@ -76,4 +81,17 @@ func (pl *Player) UpdatePosition() {
 			pl.DstRect.X += pl.Speed
 		}
 	}
+
+	if pl.IsMoving && *frameCount%8 == 1 {
+		pl.Frame++
+	}
+}
+
+func (pl *Player) Update() {
+	pl.updatePosition()
+	*frameCount++
+	pl.updateSprites()
+
+	pl.IsMoving = false
+	pl.Up, pl.Down, pl.Right, pl.Left = false, false, false, false
 }

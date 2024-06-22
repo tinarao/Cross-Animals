@@ -17,3 +17,18 @@ func Quit() {
 	rl.UnloadMusicStream(Soundtrack)
 	rl.CloseAudioDevice()
 }
+
+func Play() {
+	rl.UpdateMusicStream(Soundtrack)
+	if IsMusicPaused {
+		rl.PauseMusicStream(Soundtrack)
+	} else {
+		rl.ResumeMusicStream(Soundtrack)
+	}
+}
+
+func Controls() {
+	if rl.IsKeyPressed(rl.KeyM) {
+		IsMusicPaused = !IsMusicPaused
+	}
+}
